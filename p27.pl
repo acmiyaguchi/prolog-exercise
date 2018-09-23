@@ -27,30 +27,25 @@ group3(L, G1, G2, G3) :- group3(L, [2, 3, 4], G1, G2, G3).
 % b) Generalize the above predicate in a way that we can specify a list of
 % group sizes and the predicate will return a list of groups.
 
-% input, L: lengths, R: results
+% select N elements from a list via backtracking
+selectN([], 0, []).
+selectN([H|Ls], K, [H|Rs]) :-
+    K1 is K - 1,
+    selectN(Ls, K1, Rs).
+selectN([_|Ls], K, R) :- selectN(Ls, K, R).
 
-% base-case
-group([], [], []) :- !.
-
-% go to the next size if the current element is 0
-group(In, [0|Ls], [[]|Rs]) :- group(In, Ls, Rs).
-
-% Xs is the sublist that's currently being added to
-group([H|T], [L|Ls], [[H|Xs]|Rs]) :-
-    L > 0,
-    L1 is L - 1,
-    group(T, [L1|Ls], [Xs|Rs]).
-
-% we can also skip over an element, see p26 for similar logic
-group([H|T], [N,L|Ls], [X,[H|Xs]|Rs]) :-
-    L > 0,
-    L1 is L - 1,
-    group(T, [N,L1|Ls], [X,Xs|Rs]).
-% we can skip within
-
-
+group([], [], []).
+group(In, [L|Ls], [Group|Ys]) :-
+    selectN(In, L, Group),
+    subtract(In, Group, Res),
+    group(Res, Ls, Ys).
 
 % Example:
 % ?- group([aldo,beat,carla,david,evi,flip,gary,hugo,ida],[2,2,5],Gs).
 % Gs = [[aldo,beat],[carla,david],[evi,flip,gary,hugo,ida]]
 % ...
+
+test :-
+    L = [aldo,beat,carla,david,evi,flip,gary,hugo,ida],
+    setof([G1, G2, G3], group3(L, G1, G2, G3), Res),
+    setof(Gs, group(L, [2, 3, 4], Gs), Res).
